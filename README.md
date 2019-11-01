@@ -6,9 +6,9 @@ This Script provides you with basic Settings for commonly used canteens (Mensa 1
 # Installation
 
 ## Prerequisites
-Prerequisites are shown in `requirements.txt` if this should not work, please inform me about non included prerequisites.
+Prerequisites are shown in `requirements.txt` if this does not work, please inform me about non included prerequisites.
 
-To install those I think should be enough, run:
+To install those, for whom I think it should work, run:
 
 `pip install -r requirements.txt`
 
