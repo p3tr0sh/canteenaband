@@ -108,8 +108,21 @@ def max_str_len(alist, i):
 
     return max(temp2)
 
-def colourize_row(meallist):
+    
+def print_table(meallist):
+    
+    # Header
+    header = ""
+    headerlist =  ['Meal','Type','Öffnung']
+    alignm = max_str_len(meallist, 0)
+    alignt = int((max_str_len(meallist, 1)+1)/2)*2
+    aligno = max_str_len(meallist, 2)
 
+    print("| {:^{aleft}s} | {:^{amid}s} | {:^{aright}s} |".format(headerlist[0],headerlist[1],headerlist[2],aleft=alignm,amid=alignt,aright=aligno))
+
+    print(header)
+    # Rows
+    
     ORANGE = '\033[38;5;202;10m'
     GREEN = '\033[38;5;34;10m'
     VEGAN = '\033[38;5;82;10m'
@@ -118,67 +131,22 @@ def colourize_row(meallist):
     ABEND = '\033[38;5;195;10m'
     RESET = '\033[0m'
 
-    max_mealstr_len = max_str_len(meallist, 0)
-    max_typestr_len = max_str_len(meallist, 1)
-    alignm = int(max_mealstr_len/2)
-    alignt = int(max_typestr_len/2)
-    aligno = int(max_str_len(meallist, 2)/2)
 
-    # Rows
     for item in meallist:
-        if len(item[1]) <= alignt:  
-            space_t = 2
-        else:
-            space_t = 1
-
-        if len(item[2]) == 10:
-            space_o = 5 
-        else:
-            space_o = 0
-        
-        # Setting Print Strings
-        aligntt = alignt-int(len(item[1])/2)+1
-        alignmm = max_mealstr_len-len(item[0])
-        alignoo = aligno-int(len(item[2])/2)
-        alignoo2 = (aligno+space_o)-len(item[2])
-        
         # Setting Oeffnungscolour
         if item[2] == 'Abendmensa':
             OEFF = ABEND
         else:
             OEFF = MITTAG
 
+        COLOR = ORANGE
         if item[1] == 'VEGT':
-            print("|", GREEN + item[0] + RESET + " "*alignmm, "|",
-                    " "*aligntt + GREEN + item[1] + RESET + " "*aligntt, "|", 
-                    " "*alignoo + OEFF + item[2] + RESET + " "*alignoo2,"|")
+            COLOR = GREEN
         elif item[1] == 'VEGA':
-            print("|", VEGAN + item[0] + RESET + " "*alignmm, "|",
-                    " "*aligntt + VEGAN + item[1] + RESET + " "*aligntt, "|", 
-                    " "*alignoo + OEFF + item[2] + RESET + " "*alignoo2,"|")
-        else:
-            print("|", ORANGE + item[0] + RESET + " "*alignmm, "|",
-                    " "*aligntt + ORANGE + item[1] + RESET + " "*aligntt, "|", 
-                    " "*alignoo + OEFF + item[2] + RESET + " "*alignoo2,"|")
+            COLOR = VEGAN
+        
+        print("| {}{:{aleft}s}{} | {}{:^{amid}s}{} | {}{:^{aright}s}{} |".format(COLOR,item[0],RESET,COLOR,item[1],RESET,OEFF,item[2],RESET,aleft=alignm,amid=alignt,aright=aligno))
 
-def print_table(meallist):
-    
-    # Header
-    header = ""
-    headerlist =  ['Meal','Type','Oeffnung']
-    max_mealstr_len = max_str_len(meallist, 0)
-    max_typestr_len = max_str_len(meallist, 1)
-    alignm = int(max_mealstr_len/2)
-    alignt = int(max_typestr_len/2)
-    aligno = int(max_str_len(meallist, 2)/2)
-
-    print("|" + " "*(alignm-alignm%4) + 'Meal' + " "*(alignm-alignm%4),  
-            "|" +  " "*(alignt) + 'Type' +  " "*(alignt) +  
-            "|" + " "*(aligno-3) +  'Oeffnung' +  " "*(aligno-3) + '|')
-
-    print(header)
-    # Rows
-    colourize_row(meallist)
 
 def set_mensa_xpath(mensa_id, day, mealtype):
 
