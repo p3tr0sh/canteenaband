@@ -6,7 +6,6 @@ This Script provides you with basic Settings for commonly used canteens (Mensa 1
 # Installation
 
 ## Prerequisites
-python3 urllib, datetime, timedelta, argparse, xml.etree.ElementTree
 
 `pip install -r requirements.txt`
 
