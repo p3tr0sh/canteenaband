@@ -213,6 +213,7 @@ def main(args):
 
 if __name__ == "__main__":
 
+    # args parser for script call, change default values here if you want
     parser = argparse.ArgumentParser(description='Getting the meal of today')
 
     parser.add_argument('-id','--mensa_id', type=int, choices=[1,2,360], required=False, default=1, 
