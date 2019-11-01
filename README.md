@@ -1,4 +1,4 @@
-# happymeal
+# canteenaband
 Simple Python script for cafeterias and canteens managed by the Studentenwerk Lower Saxony 
 
 This Script provides you with basic Settings for commonly used canteens (Mensa 1, Mensa 2, Mensa 360) see `mensa --help` for choices
