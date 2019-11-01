@@ -1,0 +1,232 @@
+#!/usr/bin/python3
+
+import urllib.request
+from datetime import datetime, timedelta
+import argparse
+import os
+import xml.etree.ElementTree as ET
+
+# Defining day attributes
+today = datetime.now()
+tomorrow = today + timedelta(days=1)
+todsunday = today.isoweekday()
+tomsunday = tomorrow.isoweekday()
+
+def set_mensaid(args):
+
+    # Defining mensa id
+    if args.mensa_id == 1:
+        args.mensa_id = 101
+    elif args.mensa_id == 2:
+        args.mensa_id = 105
+    elif args.mensa_id == 360:
+        args.mensa_id = 111
+    else:
+        args.mensa_id = 101
+
+def set_date(args):
+
+    # Defining date
+    if args.day == 'tod' and args.mensa_id != 1 and todsunday not in [6,7]:
+        args.day = today.strftime("%Y-%m-%d")
+    elif args.day == 'tom' and tomsunday != 7:
+        args.day = tomorrow.strftime("%Y-%m-%d") 
+    elif args.mensa_id != 1 and todsunday in [6,7]:
+        print('\033[38;5;201;10m' + 'Mensa is closed' + '\033[0m')
+        raise SystemExit
+    elif args.mensa_id == 1 and args.day =='tom' and tomsunday == 7 or todsunday == 7:
+        print('\033[38;5;201;10m' + 'Mensa is closed' + '\033[0m')
+        raise SystemExit
+    else:
+        args.day = today.strftime("%Y-%m-%d")
+
+def set_mealtype(args):
+
+    if args.meal == 'vet':
+        chickendinner = "[@kennzeichnung='VEGT']"
+    elif args.meal == 'veg':
+        chickendinner = "[@kennzeichnung='VEGA']"
+    else:
+        chickendinner = ""
+
+    return chickendinner
+
+def get_meals(path, url):
+
+    # List of meals will become nested List in next function
+    happymeals = list()
+
+    # Setting up ElemtTree See ElementTree Docu for further Information
+    doc = urllib.request.urlopen(url)
+    tree = ET.parse(doc)
+    root = tree.getroot()
+
+    #Loop for getting mealname and type added secondary temp list, 
+    #because it does not replenish after single iteration
+
+    for child in root.findall(path):
+
+        # Initialising temporary lists
+        temp1 = list()
+        temp2 = list()
+
+        # Appending lists with wanted values from XML 
+        temp2.append(child.get('meal'))
+        temp2.append(child.get('kennzeichnung'))
+        
+        # Parsing Oeffnungsidentifier to Mittag- or Abendmensa
+        if child.get('oeffnung') == '2':
+            temp2.append('Mittagsmensa')
+        elif child.get('oeffnung') == '3':
+            temp2.append('Abendmensa')
+        else:
+            temp2.append(child.get('oeffnung'))
+
+        # Creating nested List for parsing to meallist
+        for i in range(len(temp2)):
+            temp1.append(temp2[i])
+
+        # temporary lists won't replenish for iterations, so here is work-around
+        temp2.remove(child.get('meal'))
+        temp2.remove(child.get('kennzeichnung'))
+        if child.get('oeffnung') == '2':
+            temp2.remove('Mittagsmensa')
+        elif child.get('oeffnung') == '3':
+            temp2.remove('Abendmensa')
+        else:
+            temp2.remove(child.get('oeffnung'))
+
+        # Appending values to meallist
+        happymeals.append(temp1)
+    return happymeals
+
+def max_str_len(alist, i):
+    
+    temp = [el[i] for el in alist]
+    temp2 = list()
+    for element in temp:
+        temp2.append(len(element))
+
+    return max(temp2)
+
+def colourize_row(meallist):
+
+    ORANGE = '\033[38;5;202;10m'
+    GREEN = '\033[38;5;34;10m'
+    VEGAN = '\033[38;5;82;10m'
+    MITTAG = '\033[38;5;63;10m'
+    GREEN = '\033[38;5;34;10m'
+    ABEND = '\033[38;5;195;10m'
+    RESET = '\033[0m'
+
+    max_mealstr_len = max_str_len(meallist, 0)
+    max_typestr_len = max_str_len(meallist, 1)
+    alignm = int(max_mealstr_len/2)
+    alignt = int(max_typestr_len/2)
+    aligno = int(max_str_len(meallist, 2)/2)
+
+    # Rows
+    for item in meallist:
+        if len(item[1]) <= alignt:  
+            space_t = 2
+        else:
+            space_t = 1
+
+        if len(item[2]) == 10:
+            space_o = 5 
+        else:
+            space_o = 0
+        
+        # Setting Print Strings
+        aligntt = alignt-int(len(item[1])/2)+1
+        alignmm = max_mealstr_len-len(item[0])
+        alignoo = aligno-int(len(item[2])/2)
+        alignoo2 = (aligno+space_o)-len(item[2])
+        
+        # Setting Oeffnungscolour
+        if item[2] == 'Abendmensa':
+            OEFF = ABEND
+        else:
+            OEFF = MITTAG
+
+        if item[1] == 'VEGT':
+            print("|", GREEN + item[0] + RESET + " "*alignmm, "|",
+                    " "*aligntt + GREEN + item[1] + RESET + " "*aligntt, "|", 
+                    " "*alignoo + OEFF + item[2] + RESET + " "*alignoo2,"|")
+        elif item[1] == 'VEGA':
+            print("|", VEGAN + item[0] + RESET + " "*alignmm, "|",
+                    " "*aligntt + VEGAN + item[1] + RESET + " "*aligntt, "|", 
+                    " "*alignoo + OEFF + item[2] + RESET + " "*alignoo2,"|")
+        else:
+            print("|", ORANGE + item[0] + RESET + " "*alignmm, "|",
+                    " "*aligntt + ORANGE + item[1] + RESET + " "*aligntt, "|", 
+                    " "*alignoo + OEFF + item[2] + RESET + " "*alignoo2,"|")
+
+def print_table(meallist):
+    
+    # Header
+    header = ""
+    headerlist =  ['Meal','Type','Oeffnung']
+    max_mealstr_len = max_str_len(meallist, 0)
+    max_typestr_len = max_str_len(meallist, 1)
+    alignm = int(max_mealstr_len/2)
+    alignt = int(max_typestr_len/2)
+    aligno = int(max_str_len(meallist, 2)/2)
+
+    print("|" + " "*(alignm-alignm%4) + 'Meal' + " "*(alignm-alignm%4),  
+            "|" +  " "*(alignt) + 'Type' +  " "*(alignt) +  
+            "|" + " "*(aligno-3) +  'Oeffnung' +  " "*(aligno-3) + '|')
+
+    print(header)
+    # Rows
+    colourize_row(meallist)
+
+def set_mensa_xpath(mensa_id, day, mealtype):
+
+    # Defining the mensa xpath from XML see mensa_url for detailed view of XML Format
+    mensa_xpath = "./mensa[@id='" + str(mensa_id) +"']/day[@date='" + day +"']/meal" + mealtype + ""
+    
+    return mensa_xpath
+
+def main(args):
+    
+    # Setting Terminal width
+    print("\x1b[8;30;120t")
+
+    # Getting mensa_xpath
+    mensa_xpath_req = set_mensa_xpath(args.mensa_id, args.day, set_mealtype(args))
+
+    # Mensa XML URL change value here if you have same XML structure, but other URL
+    mensa_url = 'http://api.stw-on.de/xml/mensa.xml'
+    meallist = get_meals(mensa_xpath_req, mensa_url)
+
+    # Adding vegan food to vegetarian selection
+    if args.meal == 'vet':
+        args.meal = "veg"
+        mensa_xpath_req2 = set_mensa_xpath(args.mensa_id, args.day, set_mealtype(args))
+        vegetarianlist = get_meals(mensa_xpath_req2, mensa_url)
+        for elem in vegetarianlist:
+            meallist.append(elem)
+        print_table(meallist)
+    else:
+        print_table(meallist)
+
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description='Getting the meal of today')
+
+    parser.add_argument('-id','--mensa_id', type=int, choices=[1,2,360], required=False, default=1, 
+            help="Parameter that defines the mensaID")
+    parser.add_argument('-m', '--meal', choices=['veg','vet'], required=False, 
+            help="specify mealtype")
+    parser.add_argument('-d', '--day', choices=['tod','tom'], required=False, default='tod', 
+            help="Defining date of wanted mensa menue")
+
+    args = parser.parse_args()
+
+    set_date(args) 
+    set_mensaid(args)
+    set_mealtype(args)
+
+    #starting script
+    main(args)
