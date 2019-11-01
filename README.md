@@ -4,7 +4,11 @@ Simple Python script for cafeterias and canteens managed by the Studentenwerk Lo
 This Script provides you with basic Settings for commonly used canteens (Mensa 1, Mensa 2, Mensa 360) see `mensa --help` for choices
 
 # Installation
-Requirements/dependencies are python3, urllib, datetime, timedelta, argparse, xml.etree.ElementTree
+
+## Prerequisites
+python3 urllib, datetime, timedelta, argparse, xml.etree.ElementTree
+
+`pip install -r requirements.txt`
 
 The script needs to be placed somewhere covered by your bash/python PATH, typically everythinh in `/home/`, `/usr/bin/` or `/usr/local/bin/` should do the trick
 
