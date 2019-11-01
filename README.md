@@ -38,7 +38,7 @@ At this point there are only three canteens included, but changes are easy to be
 * To see what's cooking at Mensa 1, simply add the `-id 1` flag to the script call
 
 ### Changing the colour output
-The script includes a `colourize_rows` function, which uses `\033[38;5;#m` for the text in the foreground and `\033[48;5;#m` for the background
+The script includes a `colourize_rows()` function, which uses `\033[38;5;#m` for the text in the foreground and `\033[48;5;#m` for the background
 Or something like `\033[38;5;#;48;5;#m` to set both 
 Where # is an 8-bit code, resulting from this [table](https://web.archive.org/web/20131010034437im_/http://bitmote.com/public/8-bit_color_table.png).
 You can simply change values to your favourized colours, or create new colours.
