@@ -6,10 +6,10 @@ This Script provides you with basic Settings for commonly used canteens (Mensa 1
 # Installation
 Requirements/dependencies are python3, urllib, datetime, timedelta, argparse, xml.etree.ElementTree
 
-The script needs to be placed into your bash/python PATH, typically everythin in /home/, /usr/bin/ or /usr/local/bin/ should do the trick
+The script needs to be placed somewhere covered by your bash/python PATH, typically everythinh in `/home/`, `/usr/bin/` or `/usr/local/bin/` should do the trick
 
 ## For casual users:
-Copy the mensa file into /usr/local/bin/
+If you are not that familiar with Linux, copy the mensa file into `/usr/local/bin/`
 
 # Usage
 To start simply run `mensa` in your Terminal the canteen selected will default to [Mensa1](https://www.stw-on.de/braunschweig/essen/mensen-cafeterien/mensa-1/)
