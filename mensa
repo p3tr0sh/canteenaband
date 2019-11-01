@@ -53,7 +53,7 @@ def set_mealtype(args):
 def get_meals(path, url):
 
     # List of meals will become nested List in next function
-    happymeals = list()
+    canteenabands = list()
 
     # Setting up ElemtTree See ElementTree Docu for further Information
     doc = urllib.request.urlopen(url)
@@ -96,8 +96,8 @@ def get_meals(path, url):
             temp2.remove(child.get('oeffnung'))
 
         # Appending values to meallist
-        happymeals.append(temp1)
-    return happymeals
+        canteenabands.append(temp1)
+    return canteenabands
 
 def max_str_len(alist, i):
     
