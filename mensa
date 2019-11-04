@@ -50,7 +50,7 @@ def set_mealtype(args):
 
     return chickendinner
 
-def get_meals(path, url):
+def get_meals(path, url, pricing):
 
     # List of meals will become nested List in next function
     canteenabands = list()
@@ -72,7 +72,7 @@ def get_meals(path, url):
         # Appending lists with wanted values from XML 
         temp2.append(child.get('meal'))
         temp2.append(child.get('kennzeichnung'))
-        temp2.append(child.get('price_stud'))
+        temp2.append(child.get('price_{}'.format(pricing)))
         
         # Parsing Oeffnungsidentifier to Mittag- or Abendmensa
         if child.get('oeffnung') == '2':
@@ -169,7 +169,7 @@ def main(args):
 
     # Mensa XML URL change value here if you have same XML structure, but other URL
     mensa_url = 'http://api.stw-on.de/xml/mensa.xml'
-    meallist = get_meals(mensa_xpath_req, mensa_url)
+    meallist = get_meals(mensa_xpath_req, mensa_url, args.pricing)
 
     # Adding vegan food to vegetarian selection
     if args.meal == 'vet':
@@ -193,6 +193,8 @@ if __name__ == "__main__":
             help="specify mealtype")
     parser.add_argument('-d', '--day', choices=['tod','tom'], required=False, default='tod', 
             help="Defining date of wanted mensa menue")
+    parser.add_argument('-p', '--pricing', choices=['stud','empl','guest'], required=False, default='stud', 
+            help="Defining pricing options")
 
     args = parser.parse_args()
 
