@@ -39,18 +39,8 @@ def set_date(args):
     else:
         args.day = today.strftime("%Y-%m-%d")
 
-def set_mealtype(args):
 
-    if args.meal == 'vet':
-        chickendinner = "[@kennzeichnung='VEGT']"
-    elif args.meal == 'veg':
-        chickendinner = "[@kennzeichnung='VEGA']"
-    else:
-        chickendinner = ""
-
-    return chickendinner
-
-def get_meals(path, url, pricing):
+def get_meals(path, url, pricing, meal):
 
     # List of meals will become nested List in next function
     canteenabands = list()
@@ -65,39 +55,24 @@ def get_meals(path, url, pricing):
 
     for child in root.findall(path):
 
-        # Initialising temporary lists
-        temp1 = list()
-        temp2 = list()
-
-        # Appending lists with wanted values from XML 
-        temp2.append(child.get('meal'))
-        temp2.append(child.get('kennzeichnung'))
-        temp2.append(child.get('price_{}'.format(pricing)))
+        # Initialising temporary list
+        tmp = [child.get('meal'), child.get('kennzeichnung'), child.get('price_{}'.format(pricing))]
         
+        # sort out non-vegetarian / non-vegan meals
+        if args.meal == 'veg' and not 'VEGA' in tmp[1]:
+            continue
+        if args.meal == 'vet' and not ('VEGA' in tmp[1] or 'VEGT' in tmp[1]):
+            continue
         # Parsing Oeffnungsidentifier to Mittag- or Abendmensa
         if child.get('oeffnung') == '2':
-            temp2.append('Mittagsmensa')
+            tmp.append('Mittagsmensa')
         elif child.get('oeffnung') == '3':
-            temp2.append('Abendmensa')
+            tmp.append('Abendmensa')
         else:
-            temp2.append(child.get('oeffnung'))
-
-        # Creating nested List for parsing to meallist
-        for i in range(len(temp2)):
-            temp1.append(temp2[i])
-
-        # temporary lists won't replenish for iterations, so here is work-around
-        temp2.remove(child.get('meal'))
-        temp2.remove(child.get('kennzeichnung'))
-        if child.get('oeffnung') == '2':
-            temp2.remove('Mittagsmensa')
-        elif child.get('oeffnung') == '3':
-            temp2.remove('Abendmensa')
-        else:
-            temp2.remove(child.get('oeffnung'))
-
+            tmp.append(child.get('oeffnung'))
+        
         # Appending values to meallist
-        canteenabands.append(temp1)
+        canteenabands.append(tmp)
     return canteenabands
 
 def max_str_len(alist, i):
@@ -110,8 +85,10 @@ def max_str_len(alist, i):
     return max(temp2)
 
     
-def print_table(meallist):
+def print_table(meallist, args):
     
+
+
     # Header
     header = ""
     headerlist =  ['Meal','Type',' Price','Öffnung']
@@ -143,19 +120,18 @@ def print_table(meallist):
             OEFF = MITTAG
 
         COLOR = ORANGE
-        if item[1] == 'VEGT':
+        if 'VEGT' in item[1]:
             COLOR = GREEN
-        elif item[1] == 'VEGA':
+        elif 'VEGA' in item[1]:
             COLOR = VEGAN
         
         print("| {}{:{ameal}s}{} | {}{:^{atype}s}{} | {}{:^{aprice}s}{} | {}{:^{aoeff}s}{} |".format(COLOR,item[0],RESET,COLOR,item[1],RESET,PRICE,item[2],RESET,OEFF,item[3],RESET,ameal=alignm,atype=alignt,aprice=alignp,aoeff=aligno))
-        #print("| {}{:{aleft}s}{} | {}{:^{amid}s}{} | {}{:^{aright}s}{} |".format(COLOR,item[0],RESET,COLOR,item[1],RESET,OEFF,item[2],RESET,aleft=alignm,amid=alignt,aright=aligno))
 
 
-def set_mensa_xpath(mensa_id, day, mealtype):
+def set_mensa_xpath(mensa_id, day):
 
     # Defining the mensa xpath from XML see mensa_url for detailed view of XML Format
-    mensa_xpath = "./mensa[@id='" + str(mensa_id) +"']/day[@date='" + day +"']/meal" + mealtype + ""
+    mensa_xpath = "./mensa[@id='" + str(mensa_id) +"']/day[@date='" + day +"']/meal"
     
     return mensa_xpath
 
@@ -165,22 +141,13 @@ def main(args):
     print("\x1b[8;30;120t")
 
     # Getting mensa_xpath
-    mensa_xpath_req = set_mensa_xpath(args.mensa_id, args.day, set_mealtype(args))
+    mensa_xpath_req = set_mensa_xpath(args.mensa_id, args.day)
 
     # Mensa XML URL change value here if you have same XML structure, but other URL
     mensa_url = 'http://api.stw-on.de/xml/mensa.xml'
-    meallist = get_meals(mensa_xpath_req, mensa_url, args.pricing)
+    meallist = get_meals(mensa_xpath_req, mensa_url, args.pricing, args.meal)
 
-    # Adding vegan food to vegetarian selection
-    if args.meal == 'vet':
-        args.meal = "veg"
-        mensa_xpath_req2 = set_mensa_xpath(args.mensa_id, args.day, set_mealtype(args))
-        vegetarianlist = get_meals(mensa_xpath_req2, mensa_url)
-        for elem in vegetarianlist:
-            meallist.append(elem)
-        print_table(meallist)
-    else:
-        print_table(meallist)
+    print_table(meallist, args)
 
 if __name__ == "__main__":
 
@@ -189,7 +156,7 @@ if __name__ == "__main__":
 
     parser.add_argument('-id','--mensa_id', type=int, choices=[1,2,360], required=False, default=1, 
             help="Parameter that defines the mensaID")
-    parser.add_argument('-m', '--meal', choices=['veg','vet'], required=False, 
+    parser.add_argument('-m', '--meal', choices=['veg','vet','omn'], required=False, default='omn', 
             help="specify mealtype")
     parser.add_argument('-d', '--day', choices=['tod','tom'], required=False, default='tod', 
             help="Defining date of wanted mensa menue")
@@ -200,7 +167,6 @@ if __name__ == "__main__":
 
     set_date(args) 
     set_mensaid(args)
-    set_mealtype(args)
 
     #starting script
     main(args)
